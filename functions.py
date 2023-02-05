@@ -21,8 +21,8 @@ def calc_metrics(sim,obs):
     sigmasim = np.nanstd(sim)
     sigmaobs = np.nanstd(obs)
 
-    outdict['DEHM'] = meansim
-    outdict['OBS'] = meanobs
+    outdict['mean_DEHM'] = meansim
+    outdict['mean_OBS'] = meanobs
     outdict['std_DEHM'] = sigmasim
     outdict['std_OBS'] = sigmaobs
 
