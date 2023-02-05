@@ -1,4 +1,4 @@
-name: cart
+name: nuuk_course
 channels:
   - conda-forge
   - defaults
@@ -204,4 +204,3 @@ dependencies:
     - plotly==5.13.0
     - tenacity==8.1.0
     - werkzeug==2.2.2
-prefix: /Users/zhuyunye/miniconda3/envs/cart

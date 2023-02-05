@@ -11,28 +11,56 @@ import cartopy.crs as ccrs
 
 
 class aerosol_dehm:
+    par_dict = {
+                'SO2':{'par':'SO2_ugSm-3','name':'SO2','units':'$\u03BCgS/m^3$','vmin':-0.2,'vmax':3},\
+                'SO4':{'par':'SO4_ugSm-3','name':'Sulfate','units':'$\u03BCgS/m^3$','vmin':-0.2,'vmax':1},\
+                'tSO4':{'par':'SO4_ugSm-3','name':'Total sulfate','units':'$\u03BCgS/m^3$','vmin':-0.2,'vmax':1},\
+                'NH4':{'par':'NH4_ugNm-3','name':'Ammonium','units':'$\u03BCgN/m^3$','vmin':-0.2,'vmax':1.7},\
+                'PM2.5':{'par':'PM2.5_ugm-3','name':'PM2.5','units':'$\u03BCg/m^3$','vmin':-0.2,'vmax':9},\
+                'PM10':{'par':'PM10_ugm-3','name':'PM10','units':'$\u03BCg/m^3$','vmin':-0.2,'vmax':22},\
+                'SIA':{'par':'SIA_ugm-3','name':'Secondary inorganic aerosols','units':'$\u03BCg/m^3$','vmin':-0.2,'vmax':6}
+                }
 
     def __init__(self):
         self.infile = 'data/DEHM_output.nc'
         self.initial_load()
-        self.par = 'SO4_ugSm-3'
-        self.vname = 'Sulfate'
-        self.unit = '$\u03BCg/m^3$'
-
 
 
     def initial_load(self):
         self.ds = xr.open_dataset(self.infile)
 
+    def map_to_dataframe(self,var):
+        par = self.par_dict[var]['par']
+        lat,lon = self.ds['lat'].values, self.ds['lon'].values
+        outdict={'x':[],'y':[],'lat':[],'lon':[],par:[]}
+        arr = self.ds[par].values
+        for i in range(300):
+            for j in range(300):
+                outdict['x'].append(i)
+                outdict['y'].append(j)
+                outdict['lat'].append(lat[i,j])
+                outdict['lon'].append(lon[i,j])
+                outdict[var].append(arr[i,j])
+        
+        # print(outdict)
+        outdf = pd.DataFrame.from_dict(outdict)
+        # print(outdf)
+        return outdf
 
-    def plot_annual_map(self,par=None,vmin=None,vmax=None):
+
+    def plot_annual_map(self,var,vmin=None,vmax=None):
+        par,vname,units = self.par_dict[var]['par'],self.par_dict[var]['name'],self.par_dict[var]['units']
+        vmin = self.par_dict[var]['vmin'] if vmin is None else vmin
+        vmax = self.par_dict[var]['vmax'] if vmax is None else vmax
+
         fig, ax = plt.subplots(subplot_kw={'projection': ccrs.NorthPolarStereo(central_longitude=-32)})
         # arr = self.ds[self.par].mean(dim='time').values
         par = self.par if par is None else par
         arr = self.ds[par].values
         im = self.get_map(ax,arr,vmin=vmin,vmax=vmax)
         cbar = plt.colorbar(im,extend='max')
-        cbar.set_label(label=f'{self.vname} concentrations ({self.unit})')
+        cbar.set_label(label=f'{vname} concentrations ({units})')
+        cbar.ax.set_ylim([max(0,vmin),vmax])
 
         return fig
 
